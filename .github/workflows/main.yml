@@ -23,18 +23,26 @@ jobs:
             });
             const fs = require('fs');
             const newsData = issues.data.map(issue => {
-              // 改良版：Markdown形式、HTML形式、または直リンクの画像URLを徹底的に探す
-              const imgRegex = /(https?:\/\/[^ \n\r\t)]+\.(?:png|jpe?g|gif|webp|svg|bmp))/i;
-              const imgMatch = issue.body ? issue.body.match(imgRegex) : null;
+              const body = issue.body || "";
               
-              // 画像が見つからなかった時のために、Issueの本文そのものをログに出す（デバッグ用）
-              if(!imgMatch) console.log("No image found in issue: " + issue.title);
+              // 【最強の画像抽出ルール】
+              // 1. HTMLのsrc="..." を探す
+              // 2. Markdownの ![..](...) を探す
+              // 3. 直接貼られた画像URLを探す
+              const htmlMatch = body.match(/src=["']([^"']+\.(?:png|jpe?g|gif|webp|svg))["']/i);
+              const mdMatch = body.match(/!\[.*?\]\((https?:\/\/[^ \n\r\t)]+\.(?:png|jpe?g|gif|webp|svg))\)/i);
+              const rawMatch = body.match(/(https?:\/\/[^ \n\r\t)]+\.(?:png|jpe?g|gif|webp|svg|bmp))/i);
+              
+              let foundImg = null;
+              if (htmlMatch) foundImg = htmlMatch[1];
+              else if (mdMatch) foundImg = mdMatch[1];
+              else if (rawMatch) foundImg = rawMatch[1];
 
               return {
                 title: issue.title,
                 link: issue.html_url,
                 date: issue.created_at,
-                image: imgMatch ? imgMatch[0] : 'https://placehold.jp/24/004488/ffffff/400x300.png?text=No%20Image'
+                image: foundImg || 'https://placehold.jp/24/004488/ffffff/400x300.png?text=No%20Image'
               };
             });
             fs.writeFileSync('news_data.json', JSON.stringify(newsData, null, 2));
