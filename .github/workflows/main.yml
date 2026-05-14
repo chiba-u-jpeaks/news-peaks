@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 保存する権限
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Generate News JSON
@@ -23,14 +23,18 @@ jobs:
             });
             const fs = require('fs');
             const newsData = issues.data.map(issue => {
-              const imgRegex = /(https?:\/\/[^ \n\r\t)]+\.(?:png|jpe?g|gif|webp|svg))/i;
+              // 改良版：Markdown形式、HTML形式、または直リンクの画像URLを徹底的に探す
+              const imgRegex = /(https?:\/\/[^ \n\r\t)]+\.(?:png|jpe?g|gif|webp|svg|bmp))/i;
               const imgMatch = issue.body ? issue.body.match(imgRegex) : null;
               
+              // 画像が見つからなかった時のために、Issueの本文そのものをログに出す（デバッグ用）
+              if(!imgMatch) console.log("No image found in issue: " + issue.title);
+
               return {
                 title: issue.title,
                 link: issue.html_url,
                 date: issue.created_at,
-                image: imgMatch ? imgMatch[1] : 'https://placehold.jp/400x300.png' 
+                image: imgMatch ? imgMatch[0] : 'https://placehold.jp/24/004488/ffffff/400x300.png?text=No%20Image'
               };
             });
             fs.writeFileSync('news_data.json', JSON.stringify(newsData, null, 2));
