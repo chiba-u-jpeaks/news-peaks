@@ -18,25 +18,21 @@ jobs:
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              state: 'all', 
+              state: 'all',
               per_page: 10
             });
             const fs = require('fs');
             const newsData = issues.data.map(issue => {
-              const body = issue.body || "";
+              // 【究極の解決策】
+              // 本文の中から http... で始まり画像拡張子で終わる文字列を、記号を無視して抽出
+              const regex = /https?:\/\/[^\s"'<>)]+\.(?:png|jpe?g|gif|webp|svg)/i;
+              const match = (issue.body || "").match(regex);
               
-              // 【究極の抽出ルール】
-              // 形式を問わず、本文の中から https://... で始まり、画像拡張子で終わる最初の塊を探す
-              const imgRegex = /(https?:\/\/[^\s"'<>)]+\.(?:png|jpe?g|gif|webp|svg))/i;
-              const match = body.match(imgRegex);
-              
-              let foundImg = match ? match[0] : null;
-
               return {
                 title: issue.title,
                 link: issue.html_url,
                 date: issue.created_at,
-                image: foundImg || 'https://placehold.jp/24/004488/ffffff/400x300.png?text=No%20Image'
+                image: match ? match[0] : 'https://placehold.jp/400x300.png?text=No+Image'
               };
             });
             fs.writeFileSync('news_data.json', JSON.stringify(newsData, null, 2));
