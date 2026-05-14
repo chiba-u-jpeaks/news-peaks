@@ -1,0 +1,42 @@
+name: Issue to Sakura Server
+on:
+  issues:
+    types: [opened, edited, deleted, closed, reopened]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate News JSON
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all', 
+              per_page: 10
+            });
+            const fs = require('fs');
+            const newsData = issues.data.map(issue => {
+              const imgMatch = issue.body ? issue.body.match(/!\[.*?\]\((.*?)\)/) : null;
+              return {
+                title: issue.title,
+                link: issue.html_url,
+                date: issue.created_at,
+                image: imgMatch ? imgMatch[1] : '../images/img01.jpg' 
+              };
+            });
+            fs.writeFileSync('news_data.json', JSON.stringify(newsData, null, 2));
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /www/news_test/
+          entry-name: news_data.json
+          protocol: ftp
