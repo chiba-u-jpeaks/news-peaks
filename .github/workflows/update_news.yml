@@ -31,6 +31,7 @@ jobs:
               const eyeCatch = urlMatch ? urlMatch[0] : "https://placehold.jp/400x300.png?text=No+Image";
 
               return {
+                id: i.number,
                 title: i.title,
                 link: i.html_url,
                 date: i.created_at,
