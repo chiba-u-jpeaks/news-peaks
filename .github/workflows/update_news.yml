@@ -21,11 +21,8 @@ jobs:
             });
             const fs = require('fs');
             const newsData = issues.map(i => {
-              // 1. 本文を1行ずつに分ける
-              const body = i.body || "";
-              const lines = body.split(/\r?\n/);
-              
-              // 2. 1行目からURLを抽出（HTMLタグやMarkdown記号を除去）
+              const fullBody = i.body || "";
+              const lines = fullBody.split(/\r?\n/);
               const firstLine = lines[0] || "";
               const urlMatch = firstLine.match(/https?:\/\/[^\s"'<>)]+/);
               const eyeCatch = urlMatch ? urlMatch[0] : "https://placehold.jp/400x300.png?text=No+Image";
@@ -33,10 +30,9 @@ jobs:
               return {
                 id: i.number,
                 title: i.title,
-                link: i.html_url,
                 date: i.created_at,
-                image: eyeCatch
-                body: body 
+                image: eyeCatch,
+                content: fullBody // 詳細ページで使うために「本文」という名前で保存
               };
             });
             fs.writeFileSync('news_data.json', JSON.stringify(newsData, null, 2));
@@ -45,5 +41,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add news_data.json
-          git commit -m "Fixed: Eyecatch logic" || exit 0
+          git commit -m "Fixed SyntaxError and added content field" || exit 0
           git push
