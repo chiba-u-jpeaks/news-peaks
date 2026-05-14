@@ -40,3 +40,4 @@ jobs:
           server-dir: ./chibadai-next/cu.J-PEAK-TESTfdgfthj5y7984n/en/
           entry-name: news_data.json
           protocol: ftp
+          port: 21
