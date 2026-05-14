@@ -23,7 +23,9 @@ jobs:
             });
             const fs = require('fs');
             const newsData = issues.data.map(issue => {
-              const imgMatch = issue.body ? issue.body.match(/!\[.*?\]\((.*?)\)/) : null;
+              const imgRegex = /(https?:\/\/[^ \n\r\t)]+\.(?:png|jpe?g|gif|webp|svg))/i;
+              const imgMatch = issue.body ? issue.body.match(imgRegex) : null;
+              
               return {
                 title: issue.title,
                 link: issue.html_url,
