@@ -37,8 +37,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
-          # ↓ SFTP（22番）の場合は /home/ から始まるフルパスが確実です
-          server-dir: /home/chibadai-next/www/chibadai-next/cu.J-PEAK-TESTfdgfthj5y7984n/en/
+          server-dir: www/chibadai-next/cu.J-PEAK-TESTfdgfthj5y7984n/en/
           entry-name: news_data.json
           protocol: sftp
           port: 22
