@@ -35,6 +35,7 @@ jobs:
                 link: i.html_url,
                 date: i.created_at,
                 image: eyeCatch
+                body: body 
               };
             });
             fs.writeFileSync('news_data.json', JSON.stringify(newsData, null, 2));
