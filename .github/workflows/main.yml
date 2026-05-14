@@ -1,4 +1,4 @@
-name: Issue to Sakura Server
+name: Generate News Data
 on:
   issues:
     types: [opened, edited, deleted, closed, reopened]
@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # 保存する権限
     steps:
       - uses: actions/checkout@v4
       - name: Generate News JSON
@@ -26,18 +28,14 @@ jobs:
                 title: issue.title,
                 link: issue.html_url,
                 date: issue.created_at,
-                image: imgMatch ? imgMatch[1] : '../images/img01.jpg' 
+                image: imgMatch ? imgMatch[1] : 'https://placehold.jp/400x300.png' 
               };
             });
             fs.writeFileSync('news_data.json', JSON.stringify(newsData, null, 2));
-      - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: www/chibadai-next/cu.J-PEAK-TESTfdgfthj5y7984n/en/
-          entry-name: news_data.json
-          protocol: sftp
-          port: 22
+      - name: Commit and Push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add news_data.json
+          git commit -m "Update news data" || exit 0
+          git push
